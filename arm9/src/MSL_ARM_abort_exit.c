@@ -2,6 +2,7 @@
 #include "OS_mutex.h"
 #include "OS_thread.h"
 
+#pragma exceptions on
 
 struct
 {
@@ -12,7 +13,7 @@ struct
     u32 __aborting;
 } __console_exit;
 
-void (* volatile __atexit_funcs[0x40])();
+void (*volatile __atexit_funcs[0x40])();
 
 extern int raise(int sig);
 extern void exit(int status);

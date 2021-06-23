@@ -545,7 +545,6 @@ Static arm9
 	Object STD_string.o
 	### Standard libraries ###
 	### Bundled with CodeWarrior, so probably compiled with 2.0sp1 ###
-	Object MSL_ARM_abort_exit_c.o
 	Object MSL_ARM_abort_exit.o
 	Object MSL_ARM_critical_regions_NITRO.o
 	Object MSL_ARM_math.o
