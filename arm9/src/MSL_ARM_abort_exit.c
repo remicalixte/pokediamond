@@ -1,41 +1,29 @@
 #include "global.h"
+#include "MSL_ARM_abort_exit.h"
 #include "OS_mutex.h"
 #include "OS_thread.h"
 
 #pragma exceptions on
 
-struct
-{
-    void (*__console_exit)();
-    void (*__stdio_exit)();
-
-    vs32 __atexit_curr_func;
-    u32 __aborting;
-} __console_exit;
-
-void (*volatile __atexit_funcs[0x40])();
-
 extern int raise(int sig);
-extern void exit(int status);
-extern void __exit(int status);
 extern void __destroy_global_chain();
 
 ARM_FUNC void abort()
 {
     raise(1);
-    __console_exit.__aborting = 1;
+    __abort_exit_data.__aborting = 1;
     exit(1);
 }
 
 ARM_FUNC void exit(int status)
 {
-    if (__console_exit.__aborting == 0)
+    if (__abort_exit_data.__aborting == 0)
     {
         __destroy_global_chain();
-        if (__console_exit.__stdio_exit != NULL)
+        if (__abort_exit_data.__stdio_exit != NULL)
         {
-            __console_exit.__stdio_exit();
-            __console_exit.__stdio_exit = NULL;
+            __abort_exit_data.__stdio_exit();
+            __abort_exit_data.__stdio_exit = NULL;
         }
     }
     __exit(status);
@@ -49,6 +37,7 @@ extern void _ExitProcess();
 
 ARM_FUNC void __exit(int status)
 {
+#pragma unused(status)
     if (!OS_TryLockMutex(&__cs))
     {
         __cs_id = OSi_ThreadInfo.current->id;
@@ -65,11 +54,11 @@ ARM_FUNC void __exit(int status)
         __cs_ref = 1;
     }
 
-    while (__console_exit.__atexit_curr_func > 0)
+    while (__abort_exit_data.__atexit_curr_func > 0)
     {
-        s32 index = __console_exit.__atexit_curr_func - 1;
+        s32 index = __abort_exit_data.__atexit_curr_func - 1;
         void (*to_run)() = __atexit_funcs[index];
-        __console_exit.__atexit_curr_func = index;
+        __abort_exit_data.__atexit_curr_func = index;
         to_run();
     }
 
@@ -79,10 +68,10 @@ ARM_FUNC void __exit(int status)
         OS_UnlockMutex(&__cs);
     }
 
-    if (__console_exit.__console_exit != NULL)
+    if (__abort_exit_data.__console_exit != NULL)
     {
-        __console_exit.__console_exit();
-        __console_exit.__console_exit = NULL;
+        __abort_exit_data.__console_exit();
+        __abort_exit_data.__console_exit = NULL;
     }
 
     fflush(0);

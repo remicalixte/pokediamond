@@ -8667,7 +8667,7 @@
 .extern NNSi_SndPlayerFreeSeqPlayer
 .extern OSi_ThreadInfo
 .extern __StringRead
-.extern __console_exit
+.extern __abort_exit_data
 .extern __cs
 .extern __cs_id
 .extern __cs_ref
