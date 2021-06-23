@@ -2,6 +2,7 @@
 #include "MSL_ARM_abort_exit.h"
 #include "OS_mutex.h"
 #include "OS_thread.h"
+#include "MSL_ARM_critical_regions_NITRO.h"
 
 #pragma exceptions on
 
@@ -29,29 +30,26 @@ ARM_FUNC void exit(int status)
     __exit(status);
 }
 
-extern OSMutex __cs;
-extern u32 __cs_id;
-extern u32 __cs_ref;
 extern void fflush(u32);
 extern void _ExitProcess();
 
 ARM_FUNC void __exit(int status)
 {
 #pragma unused(status)
-    if (!OS_TryLockMutex(&__cs))
+    if (!OS_TryLockMutex(&__cs[0]))
     {
-        __cs_id = OSi_ThreadInfo.current->id;
-        __cs_ref = 1;
+        __cs_id[0] = OSi_ThreadInfo.current->id;
+        __cs_ref[0] = 1;
     }
-    else if (__cs_id == OSi_ThreadInfo.current->id)
+    else if (__cs_id[0] == OSi_ThreadInfo.current->id)
     {
-        __cs_ref++;
+        __cs_ref[0]++;
     }
     else
     {
-        OS_LockMutex(&__cs);
-        __cs_id = OSi_ThreadInfo.current->id;
-        __cs_ref = 1;
+        OS_LockMutex(&__cs[0]);
+        __cs_id[0] = OSi_ThreadInfo.current->id;
+        __cs_ref[0] = 1;
     }
 
     while (__abort_exit_data.__atexit_curr_func > 0)
@@ -62,10 +60,10 @@ ARM_FUNC void __exit(int status)
         to_run();
     }
 
-    __cs_ref--;
-    if (__cs_ref == 0)
+    __cs_ref[0]--;
+    if (__cs_ref[0] == 0)
     {
-        OS_UnlockMutex(&__cs);
+        OS_UnlockMutex(&__cs[0]);
     }
 
     if (__abort_exit_data.__console_exit != NULL)
