@@ -548,6 +548,7 @@ Static arm9
 	Object MSL_ARM_abort_exit.o
 	Object MSL_ARM_critical_regions_NITRO.o
 	Object MSL_ARM_math.o
+	Object MSL_Common_ansi_files_c.o
 	Object MSL_Common_ansi_files.o
 	Object MSL_Common_arith.o
 	Object MSL_Common_assert.o
